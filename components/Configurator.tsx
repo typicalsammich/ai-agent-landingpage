@@ -9,7 +9,7 @@ const subtitles = ['Built around your industry. Priced around your needs.','A pl
 export default function Configurator() {
  const [a, setA] = useState<Answers>(initialAnswers), [step, setStep] = useState(0), [ready, setReady] = useState(false), [busy,setBusy] = useState(false), [error,setError] = useState(''), [reference,setReference] = useState('');
  const started = useRef(Date.now()), key = useRef(''), heading = useRef<HTMLHeadingElement>(null);
- useEffect(() => { try { const saved = JSON.parse(localStorage.getItem('vaa-config-v1') || 'null'); if (saved && answersSchema.safeParse(saved.answers).success) { setA(saved.answers); setStep(Math.max(0,Math.min(10, Number(saved.step)||0))); } } catch {} key.current = crypto.randomUUID(); setReady(true); }, []);
+ useEffect(() => { try { const saved = JSON.parse(localStorage.getItem('vaa-config-v1') || 'null'); if (saved && answersSchema.safeParse(saved.answers).success) { setA(answersSchema.parse(saved.answers)); setStep(Math.max(0,Math.min(10, Number(saved.step)||0))); } } catch {} key.current = crypto.randomUUID(); setReady(true); }, []);
  useEffect(() => { if (ready) localStorage.setItem('vaa-config-v1', JSON.stringify({ answers:a, step })); }, [a,step,ready]);
  const update = (patch: Partial<Answers>) => { setA(previous => ({...previous,...patch})); key.current = crypto.randomUUID(); };
  const quote = calculate(a);

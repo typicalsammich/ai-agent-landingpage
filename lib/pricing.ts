@@ -5,8 +5,8 @@ export const pricing = {
  location: { setup: 39900, monthly: 24900 }, language: { setup: 19900, monthly: 9900 },
 };
 export type Answers = { industry: string; volume: string; customCalls: number | null; percentage: number; coverage: keyof typeof pricing.coverage; addons: (keyof typeof pricing.addons)[]; locations: number; languages: string[]; integrations: string[] };
-export const initialAnswers: Answers = { industry: 'Plumbing', volume: '50–100', customCalls: null, percentage: 1, coverage: 'businessHours', addons: [], locations: 1, languages: ['English'], integrations: [] };
-export const volumes: Record<string, number> = { 'Fewer than 50': 35, '50–100': 75, '101–200': 150, '201–300': 250, '301–450': 375, '451–600': 525, 'More than 600': 601, "I'm not sure": 100 };
+export const initialAnswers: Answers = { industry: 'Plumbing', volume: '50-100', customCalls: null, percentage: 1, coverage: 'businessHours', addons: [], locations: 1, languages: ['English'], integrations: [] };
+export const volumes: Record<string, number> = { 'Fewer than 50': 35, '50-100': 75, '101-200': 150, '201-300': 250, '301-450': 375, '451-600': 525, 'More than 600': 601, "I'm not sure": 100 };
 export const coverageLabels = { businessHours: 'Business hours', afterHours: 'After hours', eveningsWeekends: 'Evenings & weekends', alwaysAvailable: '24/7 coverage' };
 export const money = (cents: number | null) => cents === null ? 'Custom quote' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(cents / 100);
 export function determineBand(calls: number) { return calls <= 100 ? 'essential' : calls <= 300 ? 'professional' : calls <= 600 ? 'advanced' : 'custom'; }
