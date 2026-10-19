@@ -10,9 +10,15 @@ High volume without a precise count, custom workflows, custom software, five or 
 
 ## Audio
 
-Edit `lib/scenarios.ts`. Six fictional scripts are supplied, with explicit demonstration labels. With no recordings supplied, playback uses browser speech synthesis; it does not represent the production voice platform. No duration or fake seek control is shown for narration. Narration highlighting follows utterance boundaries, not fabricated timestamps. Voice availability varies by browser.
+The studio now plays three supplied recordings, extracted from the user's MP4 files into mono 64 kbps MP3 files in public/audio. Video tracks and source metadata were not published. The recordings are outbound follow-up (4:39), investment inquiry (1:28), and moving services (2:15). Edit lib/scenarios.ts to replace or add recordings. They are labeled as supplied recordings for demonstration. No transcript or call outcome is invented.
 
-To use approved recordings, put files in `public/audio/`, set each `audioUrl` (for example `/audio/plumbing.mp3`), optional `durationSeconds`, and verified transcript `startTime`/`endTime`. The HTML audio player supports scrubbing, time, speed, volume, loading and error states. The canvas uses actual Web Audio frequency analysis. Cross-origin audio must allow CORS; same-origin files are preferred. Transcript seeking is enabled only when real timestamps exist. Obtain permission and remove private caller information before adding genuine recordings. Set `isDemonstration` appropriately and revise copy if using authentic material.
+The player uses real audio playback, metadata duration, seeking, playback speed, volume, and a Web Audio frequency visualization. Animation frames are canceled on pause, restart, scenario changes, and completion. Audio starts only after a visitor chooses play. Verified transcript timestamps can be added later if supplied.
+
+## Updated interactive sections
+
+Every industry has a different workspace illustration and tailored content. The call theater includes five separate scenario visuals, four selectable stages, and optional timed playback. The integration graph has animated SVG signal paths, moving packets, selectable nodes, and a pause control. Reduced-motion preferences disable automatic motion. The graph remains an illustrative workflow; it does not imply active integrations.
+
+All decorative link arrows are removed. The brand includes a small AI RECEPTIONIST descriptor. Contact CTAs use tel:+19516041132.
 
 ## Sites hosting
 
@@ -40,9 +46,9 @@ Supply approved production voice recordings and confirm platform/language suppor
 
 ## Verification
 
-18 engine/validation tests passed, including the supplied plumbing test. TypeScript and the final Sites production build passed. A standard Next.js production build completed once; the final rerun was blocked by Windows EPERM filesystem errors during generated output creation. Actual Vercel deployment is unverified. Browser QA walked all eleven steps, verified persistence after reload, checked pricing deduplication and itemization, saved a local proposal, changed audio scenarios, started browser narration, changed industry content, stepped the call simulator, and searched FAQs. DOM overflow measurements passed at frame widths 320, 375, 390, 430, 768, 1024, and 1440 (usable width excludes the browser scrollbar). Desktop hero and mobile layout were visually inspected. Genuine-file waveform/time alignment remains unverified until recordings are supplied. No production telephony or CRM connections are implied by the demos.
+18 engine/validation tests passed, including the supplied plumbing test. TypeScript and the final Sites production build passed. A standard Next.js production build completed once; the final rerun was blocked by Windows EPERM filesystem errors during generated output creation. Actual Vercel deployment is unverified. Browser QA walked all eleven steps, verified persistence after reload, checked pricing deduplication and itemization, saved a local proposal, changed audio scenarios, started browser narration, changed industry content, stepped the call simulator, and searched FAQs. DOM overflow measurements passed at frame widths 320, 375, 390, 430, 768, 1024, and 1440 (usable width excludes the browser scrollbar). Desktop hero and mobile layout were visually inspected. All three supplied recordings were verified in browser playback, and seeking was checked. No timestamped transcript was supplied. No production telephony or CRM connections are implied by the demos.
 
 
 ## Delivery status
-Private publication could not proceed: automatic approval review rejected the source-upload helper input with 'approval required by policy' while sandbox approvals are disabled. The requested repository permission was granted, but the upload remained blocked. No deployed URL is claimed. The complete source and desktop preview are delivered locally.
 
+The website is maintained in typicalsammich/ai-agent-landingpage on GitHub and deployed through its connected Vercel project. Deployment status is verified after source updates. The separate Sites project remains unused for publication.

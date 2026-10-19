@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const parsed = submissionSchema.safeParse(JSON.parse(raw)); if (!parsed.success) return json({ error: 'Check your contact details and questionnaire answers.' }, 400);
   const data = parsed.data;
   if (Date.now() - data.startedAt < 3000 || data.startedAt > Date.now()) return json({ error: 'Please review your details before submitting.' }, 400);
-  const db = env.DB; if (!db) return json({ error: 'Proposal storage is unavailable. Please try again later or contact virtualagentai@gmail.com.' }, 503);
+  const db = env.DB; if (!db) return json({ error: 'Proposal storage is unavailable. Please try again later or call (951) 604-1132.' }, 503);
   const existing = await db.prepare('SELECT id FROM leads WHERE idempotency_key = ?').bind(data.idempotencyKey).first<{id:string}>(); if (existing) return json({ reference: existing.id });
   const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-vercel-forwarded-for') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
   const ipHash = await digest(ip + ':' + Math.floor(Date.now() / 86400000));
@@ -37,3 +37,4 @@ export async function POST(request: Request) {
   return json({ reference }, 201);
  } catch { return json({ error: 'We could not complete your request. Your answers are preserved; please try again.' }, 500); }
 }
+

@@ -1,7 +1,7 @@
 export const faqs = [
  ['What is an AI receptionist?', 'A voice assistant configured to answer business calls, provide approved information, collect details, and guide callers toward the next step. Virtual Agent AI is a managed service built around your call flow.'],
  ['How does it answer phone calls?', 'Your phone workflow sends selected calls to the voice service. The receptionist greets callers and follows approved instructions. Phone-system compatibility and routing are confirmed during discovery.'],
- ['Does it sound like a real person?', 'Quality depends on the configured platform, voice, and connection. Request a production sample during discovery. The browser-narrated scripts here illustrate conversation structure, not production voice quality. The AI should identify itself appropriately.'],
+ ['Does it sound like a real person?', 'Quality depends on the configured platform, voice, and connection. Request a production sample during discovery. The studio contains supplied call recordings. Ask us about the voice and configuration that fit your business. The AI should identify itself appropriately.'],
  ['Can it answer calls 24/7?', 'Yes, 24/7 is an optional coverage configuration. The final proposal defines availability, routing, and the expected call-volume band.'],
  ['Can it handle multiple calls simultaneously?', 'Capacity depends on the voice platform and configuration. We review peak demand and agree capacity before activation.'],
  ['Can it answer questions about my business?', 'It can use approved hours, services, service areas, and common questions. We test representative inquiries and define handoffs for anything outside its knowledge.'],
