@@ -1,7 +1,8 @@
 // Vercel/Node adapter. Secrets stay on the server; use a scoped D1 API token.
-export function getEnvironment(): { DB?: D1Database; LEAD_WEBHOOK_URL?: string; LEAD_WEBHOOK_TOKEN?: string } {
+export function getEnvironment(): { DB?: D1Database; LEAD_WEBHOOK_URL?: string; LEAD_WEBHOOK_TOKEN?: string; RESEND_API_KEY?: string; LEAD_EMAIL_FROM?: string; LEAD_EMAIL_TO?: string } {
+ const email = { RESEND_API_KEY: process.env.RESEND_API_KEY, LEAD_EMAIL_FROM: process.env.LEAD_EMAIL_FROM, LEAD_EMAIL_TO: process.env.LEAD_EMAIL_TO };
  const { D1_ACCOUNT_ID, D1_DATABASE_ID, D1_API_TOKEN, LEAD_WEBHOOK_URL, LEAD_WEBHOOK_TOKEN } = process.env;
- if (!D1_ACCOUNT_ID || !D1_DATABASE_ID || !D1_API_TOKEN) return { LEAD_WEBHOOK_URL, LEAD_WEBHOOK_TOKEN };
+ if (!D1_ACCOUNT_ID || !D1_DATABASE_ID || !D1_API_TOKEN) return { ...email, LEAD_WEBHOOK_URL, LEAD_WEBHOOK_TOKEN };
  const prepare = (sql: string, params: unknown[] = []) => ({
   bind: (...values: unknown[]) => prepare(sql, values),
   async run() {
@@ -12,5 +13,6 @@ export function getEnvironment(): { DB?: D1Database; LEAD_WEBHOOK_URL?: string; 
   },
   async first<T>() { const result = await this.run(); return (result.results[0] ?? null) as T | null; },
  });
- return { DB: { prepare } as unknown as D1Database, LEAD_WEBHOOK_URL, LEAD_WEBHOOK_TOKEN };
+ return { ...email, DB: { prepare } as unknown as D1Database, LEAD_WEBHOOK_URL, LEAD_WEBHOOK_TOKEN };
 }
+

@@ -1,40 +1,44 @@
 import { getEnvironment } from '#site-env';
 import { submissionSchema } from '@/lib/validation';
-import { calculate } from '@/lib/pricing';
+import { sendProposal, type EmailConfig } from '@/lib/proposal-email';
 const digest = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))).map(b => b.toString(16).padStart(2, '0')).join('');
+// Best-effort per-instance protection without D1. Use Vercel Firewall for deployment-wide limits.
+const buckets = new Map<string, { count: number; expires: number }>();
 export async function POST(request: Request) {
  const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
  try {
   const env = getEnvironment();
   if (request.headers.get('origin') !== new URL(request.url).origin) return json({ error: 'Please submit from this website.' }, 403);
   if (!request.headers.get('content-type')?.includes('application/json')) return json({ error: 'JSON required.' }, 415);
-  const raw = await request.text(); if (new TextEncoder().encode(raw).length > 16000) return json({ error: 'Submission is too large.' }, 413);
-  const parsed = submissionSchema.safeParse(JSON.parse(raw)); if (!parsed.success) return json({ error: 'Check your contact details and questionnaire answers.' }, 400);
+  const raw = await request.text();
+  if (new TextEncoder().encode(raw).length > 16000) return json({ error: 'Submission is too large.' }, 413);
+  let input: unknown; try { input = JSON.parse(raw); } catch { return json({ error: 'Invalid submission.' }, 400); }
+  const parsed = submissionSchema.safeParse(input);
+  if (!parsed.success) return json({ error: 'Check your contact details and questionnaire answers.' }, 400);
   const data = parsed.data;
   if (Date.now() - data.startedAt < 3000 || data.startedAt > Date.now()) return json({ error: 'Please review your details before submitting.' }, 400);
-  const db = env.DB; if (!db) return json({ error: 'Proposal storage is unavailable. Please try again later or call (951) 604-1132.' }, 503);
-  const existing = await db.prepare('SELECT id FROM leads WHERE idempotency_key = ?').bind(data.idempotencyKey).first<{id:string}>(); if (existing) return json({ reference: existing.id });
+  const config = env as EmailConfig;
+  if (!config.RESEND_API_KEY || !config.LEAD_EMAIL_FROM) return json({ error: 'Email delivery is being configured. Please call (951) 604-1132.' }, 503);
   const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-vercel-forwarded-for') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
   const ipHash = await digest(ip + ':' + Math.floor(Date.now() / 86400000));
   const bucket = `${ipHash}:${Math.floor(Date.now() / 3600000)}`;
-  const rate = await db.prepare('INSERT INTO rate_limits (id, count) VALUES (?, 1) ON CONFLICT(id) DO UPDATE SET count = count + 1 RETURNING count').bind(bucket).first<{count:number}>();
-  if ((rate?.count ?? 99) > 5) return json({ error: 'Too many requests. Please try again in an hour.' }, 429);
-  const quote = calculate(data.answers); const fingerprint = await digest(JSON.stringify([data.contact.email.toLowerCase(), data.answers]));
-  const duplicate = await db.prepare('SELECT id FROM leads WHERE fingerprint = ? AND created_at > ?').bind(fingerprint, Date.now() - 86400000).first<{id:string}>(); if (duplicate) return json({ reference: duplicate.id });
-  const reference = 'VAA-' + crypto.randomUUID();
-  const payload = { contact: data.contact, answers: data.answers, quote, reference, timestamp: new Date().toISOString() };
-  await db.prepare('INSERT INTO leads (id, idempotency_key, fingerprint, ip_hash, payload, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(idempotency_key) DO NOTHING').bind(reference, data.idempotencyKey, fingerprint, ipHash, JSON.stringify(payload), Date.now()).run();
-  const persisted = await db.prepare('SELECT id FROM leads WHERE idempotency_key = ?').bind(data.idempotencyKey).first<{id:string}>();
-  if (!persisted) throw new Error('Persistence not confirmed');
-  if (persisted.id !== reference) return json({ reference: persisted.id });
-  const config = env as unknown as Record<string, string | undefined>;
-  if (config.LEAD_WEBHOOK_URL) {
-   try { if (!config.LEAD_WEBHOOK_URL.startsWith('https://')) throw new Error('HTTPS required');
-    const result = await fetch(config.LEAD_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(config.LEAD_WEBHOOK_TOKEN ? { Authorization: `Bearer ${config.LEAD_WEBHOOK_TOKEN}` } : {}) }, body: JSON.stringify(payload), signal: AbortSignal.timeout(8000) });
-    await db.prepare('UPDATE leads SET notification = ? WHERE id = ?').bind(result.ok ? 'delivered' : 'failed', reference).run();
-   } catch { await db.prepare('UPDATE leads SET notification = ? WHERE id = ?').bind('failed', reference).run(); }
+  for (const [key, value] of buckets) if (value.expires < Date.now()) buckets.delete(key);
+  if (!buckets.has(bucket) && buckets.size >= 10000) return json({ error: 'Please try again shortly.' }, 429);
+  const local = buckets.get(bucket) || { count: 0, expires: Date.now() + 3600000 };
+  local.count++; buckets.set(bucket, local);
+  let count = local.count;
+  if (env.DB) {
+   try {
+    const rate = await env.DB.prepare('INSERT INTO rate_limits (id, count) VALUES (?, 1) ON CONFLICT(id) DO UPDATE SET count = count + 1 RETURNING count').bind(bucket).first<{count:number}>();
+    count = Math.max(count, rate?.count ?? count);
+   } catch { /* Email delivery remains available if optional storage is unavailable. */ }
   }
+  if (count > 5) return json({ error: 'Too many requests. Please try again in an hour or call (951) 604-1132.' }, 429);
+  // Stable content-derived keys prevent retries from sending duplicate emails or conflicting with edited details.
+  const fingerprint = await digest(JSON.stringify([data.idempotencyKey, data.contact, data.answers]));
+  const reference = 'VAA-' + fingerprint.slice(0, 24);
+  try { await sendProposal(config, data, reference, fingerprint); }
+  catch { return json({ error: 'Your request could not be emailed. Your answers are preserved; please retry or call (951) 604-1132.' }, 502); }
   return json({ reference }, 201);
  } catch { return json({ error: 'We could not complete your request. Your answers are preserved; please try again.' }, 500); }
 }
-
